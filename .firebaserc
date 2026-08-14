@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "work-report-277d7"
+  },
+  "targets": {
+    "work-report-277d7": {
+      "hosting": {
+        "coa-reports": [
+          "coa-reports"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

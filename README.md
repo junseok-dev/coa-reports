@@ -41,10 +41,10 @@ coa-reports/
 ```powershell
 python build.py
 python tools/check_site.py
-python -m http.server 8000 --directory dist
+python -m http.server 5179 --bind 127.0.0.1 --directory dist
 ```
 
-브라우저에서 <http://127.0.0.1:8000/>을 엽니다.
+브라우저에서 <http://127.0.0.1:5179/>를 엽니다.
 
 ## 새 보고서 추가
 
@@ -62,3 +62,17 @@ python tools/check_site.py
 ## GitHub Pages
 
 `main`에 반영되면 `.github/workflows/pages.yml`이 `dist/`를 빌드·검증해 GitHub Pages에 배포합니다. 최초 한 번 저장소의 `Settings → Pages → Build and deployment → Source`를 `GitHub Actions`로 설정합니다.
+
+## Firebase Hosting
+
+- 공개 주소: <https://coa-reports.web.app/>
+- Firebase 프로젝트: `work-report-277d7`
+- Hosting 사이트·배포 타깃: `coa-reports`
+
+기존 LMS 기본 사이트와 같은 Firebase 프로젝트를 사용하지만 Hosting 사이트와 배포 결과는 분리되어 있습니다. 다음 명령은 `coa-reports` 타깃에만 배포합니다.
+
+```powershell
+python build.py
+python tools/check_site.py
+npx.cmd --yes firebase-tools deploy --only hosting:coa-reports --project work-report-277d7
+```

@@ -4,6 +4,7 @@
 # Generated site and test artifacts
 /dist/
 /test-output/
+/.firebase/
 
 # Python cache
 __pycache__/
