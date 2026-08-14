@@ -1,0 +1,16 @@
+# Local report drafts and source material
+/_local/
+
+# Generated site and test artifacts
+/dist/
+/test-output/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Logs and local environment
+*.log
+.env
+.env.*
+!.env.example
