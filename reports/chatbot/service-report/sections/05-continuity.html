@@ -2,111 +2,84 @@
   <div class="section-head">
     <div class="section-no">05</div>
     <div>
-      <h2>담당자 변경과 운영 연속성</h2>
-      <p class="section-summary">기존 개인 저장소를 넘기는 방식이 아니라, 새 담당자가 새 저장소와 자신의 운영 계정으로 다시 구성하는 절차를 기준으로 합니다.</p>
+      <h2>운영 환경 구성과 이전</h2>
+      <p class="section-summary">새 운영 환경에 필요한 자산, 배포 순서와 완료 검증 기준을 정리합니다.</p>
     </div>
   </div>
 
-  <div class="callout success">
-    <p><strong>기본 원칙:</strong> 전달 대상은 소스 코드, <code>.env.example</code>, 설치·검증 절차입니다. 기존 <code>.git</code> 이력, 실제 <code>.env</code>, 개인 API 키와 기존 GitHub Secrets 값은 전달하지 않습니다.</p>
+  <div class="flow" aria-label="운영 환경 구성 순서">
+    <div class="flow-step"><b>01</b><span>회사 저장소 생성</span></div>
+    <div class="flow-step"><b>02</b><span>회사 운영 계정 준비</span></div>
+    <div class="flow-step"><b>03</b><span>EC2·RDS·S3 구성</span></div>
+    <div class="flow-step"><b>04</b><span>Secrets 등록</span></div>
+    <div class="flow-step"><b>05</b><span>runner·도메인 연결</span></div>
+    <div class="flow-step"><b>06</b><span>최초 배포</span></div>
+    <div class="flow-step"><b>07</b><span>운영 검증</span></div>
   </div>
 
-  <h3>담당자 변경 전체 순서</h3>
-  <div class="flow" aria-label="담당자 변경 실행 순서">
-    <div class="flow-step"><b>01</b><span>전달할 소스와 제외 항목 점검</span></div>
-    <div class="flow-step"><b>02</b><span>새 담당자가 새 저장소 생성</span></div>
-    <div class="flow-step"><b>03</b><span>새 계정·인프라·키 준비</span></div>
-    <div class="flow-step"><b>04</b><span>새 Secrets와 환경값 등록</span></div>
-    <div class="flow-step"><b>05</b><span>EC2·runner·도메인 연결</span></div>
-    <div class="flow-step"><b>06</b><span>최초 배포와 관리자 설정</span></div>
-    <div class="flow-step"><b>07</b><span>인수 테스트 후 기존 접근 종료</span></div>
-  </div>
-
+  <h3>필수 구성 기준</h3>
   <div class="table-wrap">
     <table>
-      <caption>단계별 실행 내용과 완료 조건</caption>
-      <thead><tr><th>단계</th><th>기존 담당자가 준비할 것</th><th>새 담당자가 수행할 것</th><th>완료 조건</th></tr></thead>
+      <caption>운영 환경별 준비 항목과 완료 조건</caption>
+      <thead><tr><th>영역</th><th>필수 작업</th><th>완료 조건</th></tr></thead>
       <tbody>
         <tr>
-          <td>1. 소스 정리</td>
-          <td><code>main</code>의 정상 소스, README, <code>backend/.env.example</code>, <code>frontend/.env.example</code>와 이 보고서를 준비합니다. Secret 이름만 전달합니다.</td>
-          <td>받은 파일에서 <code>.env</code>, <code>.env.local</code>, DB 파일, 로그, 캐시, 개인 인증서와 키가 없는지 확인합니다.</td>
-          <td>비밀값 검색 결과가 없고 애플리케이션 소스·마이그레이션·워크플로가 포함됩니다.</td>
+          <td>저장소</td>
+          <td>회사 조직에 private repository를 만들고 소스, 환경변수 예시, 마이그레이션과 배포 워크플로를 등록합니다.</td>
+          <td><code>main</code> 브랜치에 실제 비밀값 없이 전체 실행 소스가 존재합니다.</td>
         </tr>
         <tr>
-          <td>2. 새 저장소</td>
-          <td>필요한 브랜치 또는 최종 소스 버전과 변경 요약을 전달합니다.</td>
-          <td>자신의 GitHub 계정 또는 회사 조직에 새 private repository를 만들고 소스를 첫 커밋으로 올립니다.</td>
-          <td>새 저장소의 <code>main</code>에서 소스가 열리고 이전 개인 저장소 권한에 의존하지 않습니다.</td>
+          <td>운영 계정</td>
+          <td>AWS, OpenAI, Google Cloud와 채널톡을 회사 소유 계정으로 구성하고 비상 관리자와 MFA를 설정합니다.</td>
+          <td>결제, 보안 알림과 복구 권한의 주체가 회사 계정입니다.</td>
         </tr>
         <tr>
-          <td>3. 새 운영 자산</td>
-          <td>필요한 AWS 자원 종류, 외부 서비스 목록과 공개 URL 구조를 설명합니다. 개인 계정 권한은 넘기지 않습니다.</td>
-          <td>회사 소유 AWS·OpenAI·Google Cloud 계정과 회사 채널톡 workspace를 준비하고 EC2·RDS·S3·OAuth client를 만듭니다.</td>
-          <td>각 서비스에 새 담당자 외 비상 관리자 1명 이상이 있고 결제·MFA·알림 주체가 회사 계정입니다.</td>
+          <td>인프라</td>
+          <td>EC2, RDS, S3, DNS·HTTPS를 구성하고 필요한 경우 승인된 방식으로 운영 데이터를 이전합니다.</td>
+          <td>API·DB·S3·도메인 연결과 백업 정책이 정상입니다.</td>
         </tr>
         <tr>
-          <td>4. Secret 등록</td>
-          <td>이전 절의 Secret 이름, 목적과 발급 경로만 안내합니다.</td>
-          <td>새로 발급·생성한 값을 <code>Repository → Settings → Secrets and variables → Actions</code>에 같은 이름으로 등록합니다.</td>
-          <td>워크플로가 참조하는 모든 이름이 존재하며 실제 값은 문서·메신저·Git에 남지 않습니다.</td>
+          <td>배포</td>
+          <td>GitHub Actions Secrets, self-hosted runner, systemd 서비스, 작업 경로와 EC2 instance ID를 설정합니다.</td>
+          <td><code>main</code> push로 배포되고 서비스가 정상 재시작됩니다.</td>
         </tr>
         <tr>
-          <td>5. 서버·배포 연결</td>
-          <td>필요한 Python·Node 버전, systemd 서비스와 배포 동작을 설명합니다.</td>
-          <td>새 EC2에 실행 환경·<code>chatbot.service</code>·self-hosted runner를 설치하고 새 저장소에 runner를 등록합니다. 작업 경로와 instance ID를 수정합니다.</td>
-          <td>GitHub의 Actions → Runners에서 online이고 <code>main</code> push로 배포가 1회 성공합니다.</td>
-        </tr>
-        <tr>
-          <td>6. 최초 운영 설정</td>
-          <td>운영에 필요한 문서·FAQ·프롬프트의 범위와 정상 질문 목록을 전달합니다.</td>
-          <td>최초 Google 관리자 로그인 후 초기 보관 비밀번호 <code>1234</code>로 보안 정보를 열고 즉시 <strong>비밀번호 재설정</strong>에서 새 비밀번호로 변경합니다. 이어서 콘텐츠, 모델과 추가 관리자 계정을 설정합니다.</td>
-          <td>사용자 채팅, 관리자 로그인, 문서 검색, 상담 연결과 로그 저장이 모두 정상입니다.</td>
-        </tr>
-        <tr>
-          <td>7. 인수 완료</td>
-          <td>질문 대응 기간을 정하고 개인 키·기존 서버·서비스 접근을 폐기합니다.</td>
-          <td>직접 배포·콘텐츠 변경·비용 입력·장애 확인을 1회 수행하고 자산대장과 복구 자료를 보관합니다.</td>
-          <td>새 담당자가 기존 개인 계정 없이 단독 운영하고, 기존 개인 키가 모두 폐기됩니다.</td>
+          <td>관리자 설정</td>
+          <td>Google 관리자 로그인 후 보안 정보 비밀번호, 콘텐츠, 모델과 관리자 계정을 설정합니다.</td>
+          <td>사용자 채팅, 관리자 기능, 상담 연결과 로그 저장이 정상입니다.</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <h3>데이터를 새 환경으로 가져올지 먼저 결정</h3>
+  <h3>운영 데이터 적용 기준</h3>
   <div class="grid-2">
     <article class="card">
-      <span class="tag">권장 기본안</span>
-      <h4>소스만 전달하고 새로 시작</h4>
-      <p>새 DB와 S3를 사용하고 <code>ENCRYPTION_KEY</code>·<code>JWT_SECRET</code>도 새로 생성합니다. 과거 대화·로그·보안 정보는 가져오지 않으므로 개인 정보와 기존 키 의존성이 가장 적습니다.</p>
+      <span class="tag">신규 환경</span>
+      <h4>새 데이터베이스로 시작</h4>
+      <p>새 RDS와 S3를 사용하고 <code>ENCRYPTION_KEY</code>·<code>JWT_SECRET</code>을 새로 생성합니다. 기존 대화와 로그는 포함하지 않습니다.</p>
     </article>
     <article class="card">
-      <span class="tag">별도 승인 필요</span>
-      <h4>기존 운영 데이터도 유지</h4>
-      <p>RDS snapshot 또는 승인된 내보내기와 S3 객체를 별도로 이전해야 합니다. 기존 암호화 데이터를 읽으려면 당시 <code>ENCRYPTION_KEY</code>도 서비스 자산으로 안전하게 옮기거나, 이전 전에 새 키로 재암호화해야 합니다.</p>
+      <span class="tag">데이터 유지</span>
+      <h4>승인된 운영 데이터 이전</h4>
+      <p>RDS snapshot과 S3 객체를 함께 이전합니다. 암호화된 데이터를 유지하려면 기존 <code>ENCRYPTION_KEY</code>를 보안 자산으로 이전하거나 사전에 새 키로 재암호화합니다.</p>
     </article>
   </div>
 
-  <div class="callout warning">
-    <p><strong>계정 자격 증명과 데이터 암호화 키의 차이:</strong> 회사 OpenAI·AWS 자격 증명은 새 운영용 값으로 재발급하고, 개인 Google OAuth client는 회사 프로젝트의 client로 교체합니다. 반면 기존 암호화 데이터를 유지하기로 한 경우의 <code>ENCRYPTION_KEY</code>는 해당 데이터의 복호화 자산이므로, 데이터를 폐기하지 않는 한 단순 삭제하면 안 됩니다.</p>
-  </div>
-
-  <h3>최종 인수 테스트</h3>
+  <h3>최종 운영 검증</h3>
   <ul class="checklist">
-    <li>새 저장소 <code>main</code> push로 GitHub Actions가 실행되고 새 EC2의 서비스가 재시작됩니다.</li>
-    <li><code>/health</code>와 관리자 시스템 상태에서 API, DB 읽기·쓰기와 EC2 상태를 확인합니다.</li>
-    <li>Google 관리자 로그인과 추가 관리자 등록·로그인을 확인합니다.</li>
-    <li>초기 보안 정보 비밀번호 <code>1234</code>를 새 비밀번호로 재설정하고, 기존 값으로 더 이상 열리지 않는지 확인합니다.</li>
-    <li>FAQ 질문, 문서 기반 질문, 취소·환불 질문과 상담 연결 버튼을 각각 시험합니다.</li>
-    <li>새 문서를 업로드·승인하고 FAISS와 S3 동기화 후 해당 문서 질문에 답하는지 확인합니다.</li>
-    <li>대화 로그·상담 세션·처리 흐름·감사 로그와 Excel 내보내기가 정상인지 확인합니다.</li>
-    <li>OpenAI Usage가 회사 운영 Project에 기록되는지 확인합니다.</li>
-    <li>n·Xavis 비용 파일과 OpenAI 월 비용을 시험 입력한 뒤 수정·삭제·감사 기록을 확인합니다.</li>
-    <li>RDS 백업, S3 versioning 또는 백업, Secret 원본 보관 위치와 마지막 정상 commit을 기록합니다.</li>
-    <li>기존 담당자의 개인 API 키, 기존 GitHub·AWS·서버 접근과 관리자 계정을 모두 제거합니다.</li>
+    <li>GitHub Actions 배포와 EC2 서비스 재시작</li>
+    <li>API, DB 읽기·쓰기, S3와 EC2 상태 확인</li>
+    <li>Google 관리자 로그인과 관리자 권한 확인</li>
+    <li>보안 정보 비밀번호 재설정과 자동 잠금 확인</li>
+    <li>FAQ·문서 기반 답변과 상담 연결 버튼 확인</li>
+    <li>문서 승인, FAISS 재구성과 S3 동기화 확인</li>
+    <li>대화·처리·감사 로그와 Excel 내보내기 확인</li>
+    <li>OpenAI Usage와 비용 관리 입력·수정·삭제 확인</li>
+    <li>RDS·S3 백업과 Secret 원본 보관 위치 기록</li>
   </ul>
 
-  <div class="callout danger">
-    <p><strong>인수 완료 기준:</strong> 소스 파일을 받았다는 사실이 아니라 새 담당자가 자신의 계정으로 배포·로그인·문서 반영·상담 연결·로그 확인·복구 위치 확인까지 직접 마친 시점입니다.</p>
+  <div class="callout success">
+    <p><strong>완료 기준:</strong> 회사 소유 계정만으로 배포, 로그인, 문서 반영, 상담 연결, 로그 확인과 복구를 수행할 수 있습니다.</p>
   </div>
 </section>
