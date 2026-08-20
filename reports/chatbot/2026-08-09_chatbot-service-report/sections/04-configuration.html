@@ -18,7 +18,7 @@
   </div>
 
   <div class="callout danger">
-    <p><strong>절대 전달하지 않는 것:</strong> 기존 담당자의 <code>.env</code>, 개인 OpenAI·AWS·LangSmith 키, 개인 Google 인증정보, DB 비밀번호와 GitHub Secrets 실제 값입니다. 새 환경은 새 담당자 또는 회사 소유 계정으로 다시 발급합니다.</p>
+    <p><strong>절대 전달하지 않는 것:</strong> 기존 담당자의 <code>.env</code>, 개인 Google 인증정보, DB 비밀번호와 GitHub Secrets 실제 값입니다. AWS·OpenAI는 회사 계정에서 새 운영 자격 증명을 발급하고, 개인 Google Cloud 프로젝트의 OAuth client는 회사 프로젝트의 새 client로 교체합니다.</p>
   </div>
 
   <h3>현재 배포에 필요한 GitHub Actions Secrets</h3>
@@ -30,7 +30,7 @@
         <tr>
           <td><code>OPENAI_API_KEY</code></td>
           <td>질문 분류, 답변 생성과 문서 임베딩 요청을 인증합니다.</td>
-          <td><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI API Platform → API keys</a>에서 운영 Project를 선택해 새 키를 생성합니다. 개인 실험용 키와 분리합니다.</td>
+          <td>회사 OpenAI 계정의 <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">API Platform → API keys</a>에서 운영 Project를 선택해 새 키를 생성합니다. 기존 키의 실제 값은 전달하지 않습니다.</td>
           <td>일반 질문, 문서 질문과 문서 재인덱싱이 정상인지 확인합니다.</td>
         </tr>
         <tr>
@@ -48,13 +48,13 @@
         <tr>
           <td><code>VITE_GOOGLE_CLIENT_ID</code></td>
           <td>프런트 Google 로그인과 백엔드 ID token 검증이 같은 OAuth client를 사용하게 합니다.</td>
-          <td><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud → APIs &amp; Services → Credentials</a>에서 OAuth 2.0 Web client를 만들고 운영 도메인을 Authorized JavaScript origin에 등록합니다.</td>
+          <td>현재 값은 개인 Google Cloud 프로젝트에 종속되어 있으므로 운영 전 교체합니다. 회사 프로젝트의 <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">APIs &amp; Services → Credentials</a>에서 OAuth 2.0 Web client를 만들고 운영 도메인을 Authorized JavaScript origin에 등록합니다.</td>
           <td>배포한 도메인에서 등록된 관리자 이메일로 로그인합니다.</td>
         </tr>
         <tr>
           <td><code>CHANNEL_TALK_URL</code></td>
           <td>사람 상담이 필요한 경우 “상담 매니저 연결하기” 버튼이 열 주소입니다.</td>
-          <td>회사 채널톡 관리자 또는 상담 운영 담당자가 제공하는 실제 상담 URL을 사용합니다.</td>
+          <td>API 비밀키가 아니라 회사 채널톡 workspace의 실제 상담 주소입니다. 새 저장소에도 같은 회사 상담 URL을 등록합니다.</td>
           <td>취소·환불 또는 상담 요청 질문에서 버튼을 눌러 올바른 채널이 열리는지 확인합니다.</td>
         </tr>
         <tr>
@@ -66,26 +66,14 @@
         <tr>
           <td><code>AWS_ACCESS_KEY_ID</code><br><code>AWS_SECRET_ACCESS_KEY</code></td>
           <td>백엔드가 S3 문서와 FAISS 파일을 읽고 쓰는 AWS 요청에 서명합니다.</td>
-          <td>새 AWS 계정의 IAM에서 해당 버킷·prefix만 허용한 운영 자격 증명을 만듭니다. 더 안전한 최종 형태는 EC2 IAM Role을 사용해 장기 키를 없애는 것입니다.</td>
+          <td>회사 AWS 계정의 IAM에서 해당 버킷·prefix만 허용한 운영 자격 증명을 새로 만듭니다. 더 안전한 최종 형태는 EC2 IAM Role을 사용해 장기 키를 없애는 것입니다.</td>
           <td>문서 업로드·다운로드, 승인 후 인덱스 S3 동기화가 되고 다른 버킷에는 접근하지 못하는지 확인합니다.</td>
         </tr>
         <tr>
           <td><code>AWS_S3_BUCKET</code></td>
           <td>원본 문서, 변환 산출물, FAQ 사본과 FAISS가 저장될 버킷을 지정합니다.</td>
-          <td>새 AWS 계정에서 운영용 S3 버킷을 만든 뒤 정확한 버킷 이름을 등록합니다. public access는 차단하고 versioning·암호화를 권장합니다.</td>
+          <td>회사 AWS 계정에서 운영용 S3 버킷을 만든 뒤 정확한 버킷 이름을 등록합니다. public access는 차단하고 versioning·암호화를 권장합니다.</td>
           <td><code>document-chatbot</code> prefix 아래 파일 생성과 재시작 후 인덱스 복구를 확인합니다.</td>
-        </tr>
-        <tr>
-          <td><code>LANGSMITH_API_KEY</code></td>
-          <td>LLM 실행 trace, 지연과 오류를 운영 workspace로 전송합니다.</td>
-          <td><a href="https://smith.langchain.com/settings" target="_blank" rel="noopener">LangSmith Settings → API Keys</a>에서 새 운영용 키를 발급합니다.</td>
-          <td>새 질문의 trace가 지정 프로젝트에 생성되는지 확인합니다.</td>
-        </tr>
-        <tr>
-          <td><code>LANGSMITH_PROJECT</code></td>
-          <td>이 챗봇 trace를 다른 서비스와 구분할 프로젝트 이름입니다.</td>
-          <td>LangSmith workspace에서 사용할 프로젝트 이름을 정합니다. 키가 아니라 식별용 설정값입니다.</td>
-          <td>의도한 프로젝트에 trace가 모이는지 확인합니다.</td>
         </tr>
         <tr>
           <td><code>JWT_SECRET</code></td>
@@ -101,6 +89,10 @@
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div class="callout success">
+    <p><strong>계정 소유 기준:</strong> AWS와 OpenAI는 회사 계정을 계속 사용하되 키는 새로 발급합니다. Google OAuth는 현재 개인 프로젝트 의존성을 제거해 회사 프로젝트로 옮깁니다. 채널톡은 회사 workspace의 실제 상담 URL이므로 유지해야 하며, 제거하면 상담 연결 버튼도 사용할 수 없습니다. LangSmith는 운영 필수 기능이 아니므로 구성 대상에서 제외합니다.</p>
   </div>
 
   <h3>Secret 외에 신규 환경에서 반드시 바꿀 항목</h3>
