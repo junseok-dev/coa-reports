@@ -10,7 +10,12 @@
     "redirects": [
       {
         "source": "/reports/chatbot/2026-08-20_chatbot-service-report/**",
-        "destination": "/reports/chatbot/2026-08-09_chatbot-service-report/",
+        "destination": "/reports/chatbot/service-report/",
+        "type": 301
+      },
+      {
+        "source": "/reports/chatbot/2026-08-09_chatbot-service-report/**",
+        "destination": "/reports/chatbot/service-report/",
         "type": 301
       }
     ],

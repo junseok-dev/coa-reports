@@ -26,7 +26,7 @@ coa-reports/
 ├─ .github/workflows/pages.yml
 ├─ assets/index.css
 ├─ reports/chatbot/
-│  └─ 2026-08-09_chatbot-service-report/  현재 보고서 · 2026-08-20 최신화
+│  └─ service-report/  현재 서비스 보고서
 │     ├─ sections/
 │     └─ index.html
 ├─ tools/check_site.py
@@ -48,12 +48,12 @@ python -m http.server 5179 --bind 127.0.0.1 --directory dist
 
 ## 새 보고서 추가
 
-`reports/chatbot/<YYYY-MM-DD_보고서명>/sections/` 구조로 원본을 추가하고 루트 `index.html`에 보고서 카드를 추가합니다. 단일 HTML을 조각 구조로 변환할 때는 다음 도구를 사용할 수 있습니다.
+`reports/chatbot/<report-slug>/sections/` 구조로 원본을 추가하고 루트 `index.html`에 보고서 카드를 추가합니다. 공개 주소를 계속 유지할 보고서는 날짜 대신 고정된 영문 경로를 사용합니다. 단일 HTML을 조각 구조로 변환할 때는 다음 도구를 사용할 수 있습니다.
 
 ```powershell
 python tools/import_report.py `
   "C:\path\to\report.html" `
-  "reports/chatbot/<YYYY-MM-DD_보고서명>"
+  "reports/chatbot/<report-slug>"
 
 python build.py
 python tools/check_site.py
