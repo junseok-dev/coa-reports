@@ -6,7 +6,7 @@
 
 ```text
 <작업 폴더>/
-├─ chatbot/       실제 챗봇 애플리케이션
+├─ encore-coa-counselor/ 실제 챗봇 애플리케이션
 └─ coa-reports/   챗봇 보고서
 ```
 
@@ -15,7 +15,7 @@
 - 보고서 원본은 `reports/chatbot/<보고서>/sections/`입니다.
 - `00-shell.html`에는 문서 셸을, 번호가 붙은 나머지 파일에는 본문 섹션을 둡니다.
 - 보고서의 `index.html`은 생성 결과이므로 직접 수정하지 않습니다.
-- 챗봇 구현 근거가 필요하면 형제 폴더 `../chatbot`을 읽되, 보고서 작업 중 애플리케이션 코드는 임의로 변경하지 않습니다.
+- 챗봇 구현 근거가 필요하면 형제 폴더 `../encore-coa-counselor`를 읽되, 보고서 작업 중 애플리케이션 코드는 임의로 변경하지 않습니다.
 - 개인정보, 원문 대화, API 키, DB 접속정보, 암호화 키와 비공개 URL은 보고서와 Git에 넣지 않습니다.
 - `_local/`은 이전 초안 등 로컬 참고자료 전용이며 Git에 포함하지 않습니다.
 
@@ -26,7 +26,8 @@ coa-reports/
 ├─ .github/workflows/pages.yml
 ├─ assets/index.css
 ├─ reports/chatbot/
-│  └─ 2026-08-09_chatbot-service-report/
+│  ├─ 2026-08-09_chatbot-service-report/  이전 보고서
+│  └─ 2026-08-20_chatbot-service-report/  현재 보고서
 │     ├─ sections/
 │     └─ index.html
 ├─ tools/check_site.py

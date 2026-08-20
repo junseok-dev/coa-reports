@@ -1,0 +1,61 @@
+<section id="architecture">
+  <div class="section-head">
+    <div class="section-no">02</div>
+    <div>
+      <h2>아키텍처와 데이터 흐름</h2>
+      <p class="section-summary">웹과 API는 EC2에서 실행되고, RDS는 운영 데이터의 기준을 보관하며, S3는 문서와 검색 인덱스를 영구 보관합니다.</p>
+    </div>
+  </div>
+
+  <div class="architecture" role="img" aria-label="상담 챗봇 계층별 구성">
+    <div class="layer"><div class="layer-title">이용 영역</div><div class="layer-items"><span class="pill">사용자 채팅</span><span class="pill">관리자 화면</span></div></div>
+    <div class="connector" aria-hidden="true">↓ HTTPS</div>
+    <div class="layer"><div class="layer-title">EC2 애플리케이션</div><div class="layer-items"><span class="pill">React</span><span class="pill">FastAPI</span><span class="pill">SSE 스트리밍</span><span class="pill">분류·검색·안전 검사·답변</span></div></div>
+    <div class="connector" aria-hidden="true">↓ 조회·저장·외부 호출</div>
+    <div class="layer"><div class="layer-title">데이터</div><div class="layer-items"><span class="pill">Aurora RDS · 운영 기준</span><span class="pill">FAISS · 실행 검색</span><span class="pill">S3 · 문서·인덱스 보관</span></div></div>
+    <div class="connector" aria-hidden="true">↔</div>
+    <div class="layer"><div class="layer-title">외부 서비스</div><div class="layer-items"><span class="pill">OpenAI</span><span class="pill">공식 홈페이지</span><span class="pill">Google OAuth</span><span class="pill">채널톡</span><span class="pill">LangSmith</span></div></div>
+  </div>
+
+  <h3>구성 요소별 책임</h3>
+  <div class="table-wrap">
+    <table>
+      <caption>무엇이 어디에서 실행되고 저장되는가</caption>
+      <thead><tr><th>영역</th><th>책임</th><th>실패 시 영향</th></tr></thead>
+      <tbody>
+        <tr><td>EC2</td><td>React 정적 파일, FastAPI, systemd 서비스와 실행용 FAISS 인덱스를 제공합니다.</td><td>사용자·관리자 화면과 API가 중단됩니다.</td></tr>
+        <tr><td>Aurora RDS</td><td>대화·로그, 문서 메타데이터와 청크, FAQ·프롬프트·설정, 관리자·감사 기록을 저장합니다.</td><td>관리자 로그인 이후 대부분의 조회·저장과 통계가 실패합니다.</td></tr>
+        <tr><td>S3</td><td>원본 PDF, 변환 산출물, FAQ 사본과 FAISS 인덱스를 영구 보관합니다.</td><td>문서 원본과 검색 인덱스의 복구·동기화가 어려워집니다.</td></tr>
+        <tr><td>OpenAI</td><td>질문 분류, 문서 임베딩, 문서 근거 답변과 운영 검토 보조에 사용됩니다.</td><td>LLM 답변·임베딩·일부 자동 검토가 실패합니다.</td></tr>
+        <tr><td>Google OAuth</td><td>등록된 이메일의 관리자 로그인을 검증합니다.</td><td>관리자 페이지에 로그인할 수 없습니다.</td></tr>
+        <tr><td>채널톡</td><td>사람 상담이 필요한 사용자에게 외부 상담 창을 엽니다.</td><td>챗봇 답변은 가능해도 사람 상담 동선이 끊깁니다.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>사용자 질문 한 건의 처리 흐름</h3>
+  <div class="flow" aria-label="사용자 질문 처리 흐름">
+    <div class="flow-step"><b>01</b><span>질문과 최근 대화 접수</span></div>
+    <div class="flow-step"><b>02</b><span>개인정보·공격 요청 안전 검사</span></div>
+    <div class="flow-step"><b>03</b><span>FAQ·문서·상담 경로 분류</span></div>
+    <div class="flow-step"><b>04</b><span>승인 문서·과정 정보 조회</span></div>
+    <div class="flow-step"><b>05</b><span>필요 시 OpenAI 답변 생성</span></div>
+    <div class="flow-step"><b>06</b><span>답변·버튼 실시간 전송</span></div>
+    <div class="flow-step"><b>07</b><span>로그 저장·품질 검토</span></div>
+  </div>
+
+  <h3>문서가 답변에 반영되는 흐름</h3>
+  <div class="flow" aria-label="문서 운영 반영 흐름">
+    <div class="flow-step"><b>01</b><span>PDF·Markdown 업로드</span></div>
+    <div class="flow-step"><b>02</b><span>본문 변환·청크 생성</span></div>
+    <div class="flow-step"><b>03</b><span>관리자 검토·승인</span></div>
+    <div class="flow-step"><b>04</b><span>활성 지식 전체 확인</span></div>
+    <div class="flow-step"><b>05</b><span>OpenAI 임베딩</span></div>
+    <div class="flow-step"><b>06</b><span>EC2 FAISS 갱신</span></div>
+    <div class="flow-step"><b>07</b><span>S3 인덱스 백업</span></div>
+  </div>
+
+  <div class="callout warning">
+    <p><strong>복구 핵심:</strong> RDS만 복구해서는 문서 원본과 실행 검색 인덱스가 완전히 돌아오지 않습니다. RDS 백업, S3의 문서·FAISS, 애플리케이션 소스와 해당 데이터에 사용한 <code>ENCRYPTION_KEY</code>를 같은 운영 단위로 관리해야 합니다.</p>
+  </div>
+</section>
