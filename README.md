@@ -26,8 +26,7 @@ coa-reports/
 ├─ .github/workflows/pages.yml
 ├─ assets/index.css
 ├─ reports/chatbot/
-│  ├─ 2026-08-09_chatbot-service-report/  이전 보고서
-│  └─ 2026-08-20_chatbot-service-report/  현재 보고서
+│  └─ 2026-08-09_chatbot-service-report/  현재 보고서 · 2026-08-20 최신화
 │     ├─ sections/
 │     └─ index.html
 ├─ tools/check_site.py
