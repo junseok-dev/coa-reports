@@ -2,84 +2,98 @@
   <div class="section-head">
     <div class="section-no">05</div>
     <div>
-      <h2>운영 환경 구성과 이전</h2>
-      <p class="section-summary">새 운영 환경에 필요한 자산, 배포 순서와 완료 검증 기준을 정리합니다.</p>
+      <h2>운영 권한 이관</h2>
+      <p class="section-summary">회사 소유 인프라와 운영 데이터는 유지하고 저장소, 자격 증명과 관리자 권한을 새 운영 주체에 연결합니다.</p>
     </div>
   </div>
 
-  <div class="flow" aria-label="운영 환경 구성 순서">
-    <div class="flow-step"><b>01</b><span>회사 저장소 생성</span></div>
-    <div class="flow-step"><b>02</b><span>회사 운영 계정 준비</span></div>
-    <div class="flow-step"><b>03</b><span>EC2·RDS·S3 구성</span></div>
-    <div class="flow-step"><b>04</b><span>Secrets 등록</span></div>
-    <div class="flow-step"><b>05</b><span>runner·도메인 연결</span></div>
-    <div class="flow-step"><b>06</b><span>최초 배포</span></div>
-    <div class="flow-step"><b>07</b><span>운영 검증</span></div>
+  <div class="callout success">
+    <p><strong>적용 방식:</strong> 기존 회사 AWS의 EC2·RDS·S3, OpenAI 운영 Project, 채널톡 workspace와 서비스 도메인은 그대로 사용합니다. 데이터 복사나 새 인프라 구축 없이 운영 권한만 전환합니다.</p>
   </div>
 
-  <h3>필수 구성 기준</h3>
+  <div class="flow" aria-label="운영 권한 이관 순서">
+    <div class="flow-step"><b>01</b><span>회사 저장소 생성</span></div>
+    <div class="flow-step"><b>02</b><span>운영 권한 등록</span></div>
+    <div class="flow-step"><b>03</b><span>자격 증명 발급</span></div>
+    <div class="flow-step"><b>04</b><span>Secrets 등록</span></div>
+    <div class="flow-step"><b>05</b><span>기존 EC2 연결</span></div>
+    <div class="flow-step"><b>06</b><span>배포·기능 검증</span></div>
+    <div class="flow-step"><b>07</b><span>기존 접근 종료</span></div>
+  </div>
+
+  <h3>필수 이관 작업</h3>
   <div class="table-wrap">
     <table>
-      <caption>운영 환경별 준비 항목과 완료 조건</caption>
-      <thead><tr><th>영역</th><th>필수 작업</th><th>완료 조건</th></tr></thead>
+      <caption>영역별 작업과 완료 조건</caption>
+      <thead><tr><th>영역</th><th>작업</th><th>완료 조건</th></tr></thead>
       <tbody>
         <tr>
-          <td>저장소</td>
-          <td>회사 조직에 private repository를 만들고 소스, 환경변수 예시, 마이그레이션과 배포 워크플로를 등록합니다.</td>
+          <td>GitHub</td>
+          <td>회사 조직에 private repository를 만들고 소스, 환경변수 예시와 배포 워크플로를 등록합니다.</td>
           <td><code>main</code> 브랜치에 실제 비밀값 없이 전체 실행 소스가 존재합니다.</td>
         </tr>
         <tr>
-          <td>운영 계정</td>
-          <td>AWS, OpenAI, Google Cloud와 채널톡을 회사 소유 계정으로 구성하고 비상 관리자와 MFA를 설정합니다.</td>
-          <td>결제, 보안 알림과 복구 권한의 주체가 회사 계정입니다.</td>
+          <td>회사 계정</td>
+          <td>AWS, OpenAI와 채널톡에 운영 담당자와 비상 관리자를 등록하고 MFA·결제·보안 알림 권한을 확인합니다.</td>
+          <td>회사 계정만으로 자원 관리, 사용량 조회와 계정 복구가 가능합니다.</td>
         </tr>
         <tr>
-          <td>인프라</td>
-          <td>EC2, RDS, S3, DNS·HTTPS를 구성하고 필요한 경우 승인된 방식으로 운영 데이터를 이전합니다.</td>
-          <td>API·DB·S3·도메인 연결과 백업 정책이 정상입니다.</td>
+          <td>Google OAuth</td>
+          <td>회사 Google Cloud 프로젝트에 Web OAuth client를 만들고 운영 도메인을 Authorized JavaScript origin에 등록합니다.</td>
+          <td>회사 이메일로 관리자 로그인에 성공합니다.</td>
         </tr>
         <tr>
-          <td>배포</td>
-          <td>GitHub Actions Secrets, self-hosted runner, systemd 서비스, 작업 경로와 EC2 instance ID를 설정합니다.</td>
+          <td>GitHub Secrets</td>
+          <td>기존 회사 자원 연결값과 새 운영 자격 증명을 새 저장소에 등록합니다. 기존 RDS를 사용하므로 <code>ENCRYPTION_KEY</code>는 현재 운영값을 유지합니다.</td>
+          <td>실제 값이 소스·문서·메신저에 남지 않고 워크플로가 모든 필수값을 읽습니다.</td>
+        </tr>
+        <tr>
+          <td>EC2 배포</td>
+          <td>기존 작업 폴더의 Git remote를 새 저장소로 바꾸고 self-hosted runner를 새 저장소에 등록합니다. 기존 <code>chatbot.service</code>와 도메인은 유지합니다.</td>
           <td><code>main</code> push로 배포되고 서비스가 정상 재시작됩니다.</td>
         </tr>
         <tr>
-          <td>관리자 설정</td>
-          <td>Google 관리자 로그인 후 보안 정보 비밀번호, 콘텐츠, 모델과 관리자 계정을 설정합니다.</td>
-          <td>사용자 채팅, 관리자 기능, 상담 연결과 로그 저장이 정상입니다.</td>
+          <td>운영 데이터</td>
+          <td>기존 RDS와 S3를 그대로 연결하고 이관 직전 RDS 복구지점과 S3 versioning·백업 상태를 기록합니다.</td>
+          <td>대화·문서·FAQ·프롬프트·로그와 FAISS 인덱스가 배포 전후 동일하게 조회됩니다.</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <h3>운영 데이터 적용 기준</h3>
-  <div class="grid-2">
+  <h3>설정값 적용 기준</h3>
+  <div class="grid-3">
     <article class="card">
-      <span class="tag">신규 환경</span>
-      <h4>새 데이터베이스로 시작</h4>
-      <p>새 RDS와 S3를 사용하고 <code>ENCRYPTION_KEY</code>·<code>JWT_SECRET</code>을 새로 생성합니다. 기존 대화와 로그는 포함하지 않습니다.</p>
+      <span class="tag">그대로 유지</span>
+      <h4>회사 자원과 데이터 연결</h4>
+      <p>EC2·RDS·S3, DB 연결 대상, S3 버킷·prefix, 채널톡 URL, 서비스 도메인과 기존 데이터용 <code>ENCRYPTION_KEY</code>를 유지합니다.</p>
     </article>
     <article class="card">
-      <span class="tag">데이터 유지</span>
-      <h4>승인된 운영 데이터 이전</h4>
-      <p>RDS snapshot과 S3 객체를 함께 이전합니다. 암호화된 데이터를 유지하려면 기존 <code>ENCRYPTION_KEY</code>를 보안 자산으로 이전하거나 사전에 새 키로 재암호화합니다.</p>
+      <span class="tag">새로 발급</span>
+      <h4>운영 자격 증명</h4>
+      <p>같은 회사 AWS와 OpenAI 계정 안에서 최소 권한의 운영 자격 증명을 발급해 새 저장소에 등록합니다.</p>
+    </article>
+    <article class="card">
+      <span class="tag">교체</span>
+      <h4>Google OAuth와 관리자 권한</h4>
+      <p>회사 Google Cloud OAuth client와 회사 관리자 이메일을 사용하고 보안 정보 비밀번호를 재설정합니다.</p>
     </article>
   </div>
 
   <h3>최종 운영 검증</h3>
   <ul class="checklist">
-    <li>GitHub Actions 배포와 EC2 서비스 재시작</li>
-    <li>API, DB 읽기·쓰기, S3와 EC2 상태 확인</li>
-    <li>Google 관리자 로그인과 관리자 권한 확인</li>
-    <li>보안 정보 비밀번호 재설정과 자동 잠금 확인</li>
-    <li>FAQ·문서 기반 답변과 상담 연결 버튼 확인</li>
-    <li>문서 승인, FAISS 재구성과 S3 동기화 확인</li>
-    <li>대화·처리·감사 로그와 Excel 내보내기 확인</li>
+    <li>새 저장소의 <code>main</code> push와 GitHub Actions 배포 성공</li>
+    <li>EC2의 <code>chatbot.service</code> 재시작과 <code>/health</code> 정상 응답</li>
+    <li>회사 Google OAuth 관리자 로그인과 관리자 권한 확인</li>
+    <li>FAQ 질문, 문서 기반 질문과 상담 연결 버튼 확인</li>
+    <li>기존 대화·문서·FAQ·프롬프트·처리·감사 로그 조회</li>
+    <li>문서 업로드·승인·FAISS 재구성 후 재배포해도 변경 내용 유지</li>
     <li>OpenAI Usage와 비용 관리 입력·수정·삭제 확인</li>
-    <li>RDS·S3 백업과 Secret 원본 보관 위치 기록</li>
+    <li>RDS 복구지점, S3 백업과 Secret 원본 보관 위치 확인</li>
+    <li>운영 담당자가 단독 배포와 기본 장애 확인을 완료한 뒤 기존 접근 권한 제거</li>
   </ul>
 
-  <div class="callout success">
-    <p><strong>완료 기준:</strong> 회사 소유 계정만으로 배포, 로그인, 문서 반영, 상담 연결, 로그 확인과 복구를 수행할 수 있습니다.</p>
+  <div class="callout warning">
+    <p><strong>완료 기준:</strong> 운영 담당자가 회사 계정만으로 배포, 로그인, 문서 반영, 상담 연결, 로그 확인과 복구 절차를 독립적으로 수행할 수 있어야 합니다.</p>
   </div>
 </section>
