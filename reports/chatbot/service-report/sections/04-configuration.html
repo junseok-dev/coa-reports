@@ -13,7 +13,7 @@
     <div class="flow-step"><b>03</b><span>운영 자격 증명 발급</span></div>
     <div class="flow-step"><b>04</b><span>회사 Google OAuth 구성</span></div>
     <div class="flow-step"><b>05</b><span>Repository Secrets 등록</span></div>
-    <div class="flow-step"><b>06</b><span>기존 EC2 runner 연결</span></div>
+    <div class="flow-step"><b>06</b><span>기존 배포 연결 확인</span></div>
     <div class="flow-step"><b>07</b><span>배포·운영 검증</span></div>
   </div>
 
@@ -102,10 +102,10 @@
       <thead><tr><th>항목</th><th>현재 위치와 의미</th><th>이관 작업</th></tr></thead>
       <tbody>
         <tr><td>EC2 instance ID</td><td><code>deploy.yml</code>의 <code>AWS_EC2_INSTANCE_ID</code>가 시스템 상태 조회에 사용됩니다.</td><td>기존 회사 EC2의 instance ID와 일치하는지 확인합니다.</td></tr>
-        <tr><td>배포 작업 폴더</td><td>self-hosted runner가 <code>~/document-chatbot_practice</code>에서 코드를 갱신합니다.</td><td>기존 폴더의 Git remote를 새 저장소로 변경하고 <code>main</code>을 동기화합니다.</td></tr>
+        <tr><td>배포 작업 폴더</td><td>self-hosted runner가 기존 EC2의 <code>~/document-chatbot_practice</code>에서 코드를 갱신합니다.</td><td>폴더와 EC2는 그대로 유지합니다. 기존 Git remote가 회사 저장소에서 유효한지 확인하고 저장소 URL이 달라진 경우에만 remote를 갱신합니다.</td></tr>
         <tr><td>AWS region·S3 prefix</td><td>워크플로가 기본 region과 <code>document-chatbot</code> prefix를 기록합니다.</td><td>기존 운영값과 일치하는지 확인해 그대로 유지합니다.</td></tr>
         <tr><td>서비스 도메인·CORS</td><td>백엔드 허용 origin과 홈페이지 링크가 소스에 포함됩니다.</td><td>기존 도메인을 유지하고 회사 Google OAuth의 Authorized origin에 등록합니다.</td></tr>
-        <tr><td>systemd·runner</td><td>워크플로는 기존 <code>chatbot.service</code>와 self-hosted runner를 사용합니다.</td><td>runner를 새 저장소에 등록하고 서비스 재시작 권한을 확인합니다.</td></tr>
+        <tr><td>systemd·runner</td><td>워크플로는 기존 EC2의 <code>chatbot.service</code>와 self-hosted runner를 사용합니다.</td><td>기존 runner의 online 상태와 서비스 재시작 권한을 확인합니다. 저장소 변경으로 기존 등록이 무효인 경우에만 runner를 다시 등록합니다.</td></tr>
       </tbody>
     </table>
   </div>
